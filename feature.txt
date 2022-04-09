@@ -1,0 +1,23 @@
+Features :-
+
+1 - Speak - Done
+
+2 - Takecommand - Done
+
+3 - Advancing Features :-
+  
+   a - wikipedia search - Done
+   b - Open Google - Done
+   c - Open Youtube- Done
+   d - Open stackoverflow - Done
+
+4 - Advancing Features 2 :-
+   
+   a - Alarm - Done
+   b - Remind Yourself - Done
+   c - Translate Hindi to English
+   d - Temperature - Done
+   e - Youtube Play search - Done
+   f - Google Play search - Done
+   g - Ask anything from jarvis - Done
+   h - AudioBook - 
