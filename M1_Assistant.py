@@ -84,9 +84,9 @@ class LoginApp(QDialog):
           result = cursor.fetchone()
           if result:
                QMessageBox.information(self,"Login Output","login seuccessfully!")
-               sys.exit(LoginApp)
-             
-               
+               p1 = LoginApp()
+               p1.close()
+    
           else:
               QMessageBox.information(self,"Login Output","Invalid User.. Register for new user ")
         
@@ -250,26 +250,26 @@ def My_loca():
     country = geo_d['country']
     speak(f"sir, You are now in {state, country}")
 
-def SpeedTest():
+# def SpeedTest():
     
-    speak ("checking speed....")
-    speed = speedtest.Speedtest()
-    downloading = speed.download()
-    correctDown = int(downloading/800000)
-    uploading = speed.upload()
-    correctUpload = int(uploading/80000)
+    # speak ("checking speed....")
+    # speed = speedtest.Speedtest()
+    # downloading = speed.download()
+    # correctDown = int(downloading/800000)
+    # uploading = speed.upload()
+    # correctUpload = int(uploading/80000)
 
-    if 'uploading' in QueryValue:
-        speak(f"The Uploading speed is {correctUpload} mbp s")
-        print(f"The Uploading speed is {correctUpload} mbp s")
+    # if 'uploading' in self.query:
+    #     speak(f"The Uploading speed is {correctUpload} mbp s")
+    #     print(f"The Uploading speed is {correctUpload} mbp s")
 
-    elif 'downloading' in QueryParams:
-        speak(f"The downloading speed is{correctDown} mbp s")
-        print(f"The downloading speed is{correctDown} mbp s")
+    # elif 'downloading' in QueryParams:
+    #     speak(f"The downloading speed is{correctDown} mbp s")
+    #     print(f"The downloading speed is{correctDown} mbp s")
 
-    else:
-        speak(f"The downloading is {correctDown} and The Uploading speed is {correctUpload}")  
-        print(f"The downloading is {correctDown} and The Uploading speed is {correctUpload}")
+    # else:
+    #     speak(f"The downloading is {correctDown} and The Uploading speed is {correctUpload}")  
+    #     print(f"The downloading is {correctDown} and The Uploading speed is {correctUpload}")
 
 class MainThread(QThread):
     def __init__(self):
@@ -475,14 +475,44 @@ class MainThread(QThread):
                 cap.release()
                 cv2.destroyAllWindows()           
 
-            elif 'downloading speed' in self.query:
-                SpeedTest()
-
             elif 'uploading speed' in self.query:
-                SpeedTest()
+                speak ("checking speed....")
+                try:
+                    speed = speedtest.Speedtest()
+                    uploading = speed.upload()
+                    correctUpload = int(uploading/80000)
+                    if 'uploading' in self.query:
+                        speak(f"The Uploading speed is {correctUpload} mbp s")
+                        print(f"The Uploading speed is {correctUpload} mbp s")
+                except Exception as e:
+                    speak("sorry sir, due to network issue i am not able to get uploading speed ")
+            elif 'downloading speed' in self.query:  
+                speak ("checking speed....")
+                try:
+                    speed = speedtest.Speedtest()
+                    downloading = speed.download()
+                    correctDown = int(downloading/800000)
+                    correctUpload = int(uploading/800000)
+                
+                    if 'downloading' in self.query:
+                        speak(f"The downloading speed is{correctDown} mbp s")
+                        print(f"The downloading speed is{correctDown} mbp s")
+                except Exception as e:
+                    speak("sorry sir, due to network issue i am not able to get downloading speed")
 
             elif 'internet speed' in self.query:
-                SpeedTest()
+                try:
+                    speak ("checking speed....")
+                    speed = speedtest.Speedtest()
+                    downloading = speed.download()
+                    correctDown = int(downloading/800000)
+                    uploading = speed.upload()
+                    correctUpload = int(uploading/800000)
+                    speak(f"The downloading is {correctDown} and The Uploading speed is {correctUpload}")  
+                    print(f"The downloading is {correctDown} and The Uploading speed is {correctUpload}")
+                except Exception as e:
+                    speak("sorry sir, due to network issue i am not able to get internet speed")
+                    
 
             elif 'volume up' in self.query:
                 pyautogui.press("Volumeup")
