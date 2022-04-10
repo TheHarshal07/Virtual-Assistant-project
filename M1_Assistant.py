@@ -1,9 +1,15 @@
 from cmath import log
 import codecs
+from ctypes.wintypes import MSG
 from distutils.command.config import LANG_EXT
+from email import message
 from fnmatch import translate
 from hashlib import new
+from http.client import ACCEPTED
+from http.cookiejar import LoadError
 from posixpath import splitdrive
+import queue
+from re import I
 from sys import maxunicode
 from threading import main_thread
 from time import time
@@ -12,16 +18,18 @@ from typing import Text
 from unicodedata import numeric
 from unittest import expectedFailure
 from winsound import PlaySound
+from httpx import QueryParams
 from pkg_resources import split_sections
 from pywikihow import search_wikihow
 import webbrowser
-from winreg import QueryInfoKey
+from winreg import QueryInfoKey, QueryValue
 from pip import main
 import pyttsx3
 import datetime
 from playsound import playsound
 import speech_recognition as sr 
 from bs4 import BeautifulSoup
+from sqlalchemy import true
 import wikipedia
 from googletrans import Translator
 from gtts import gTTS
@@ -47,6 +55,17 @@ from geopy.geocoders import Nominatim
 import geocoder
 import LoginUI
 import signUp
+from PyQt5.QtGui import *
+from PyQt5.QtCore import *
+from PyQt5.QtWidgets import *
+from PyQt5 import QtWidgets,QtCore,QtGui
+from PyQt5.QtCore import QTimer,QTime,QDate,Qt
+from PyQt5.uic import loadUiType
+from GUI import Ui_Form
+import cv2
+import pyautogui
+import speedtest
+
 
 
 class LoginApp(QDialog):
@@ -64,9 +83,10 @@ class LoginApp(QDialog):
           cursor.execute("select * from users where username = '"+ un +"' and password = '"+ pw +"' ")
           result = cursor.fetchone()
           if result:
-              QMessageBox.information(self,"Login Output","login seuccessfully!")
-              p = LoginApp()
-              p.close()
+               QMessageBox.information(self,"Login Output","login seuccessfully!")
+               sys.exit(LoginApp)
+             
+               
           else:
               QMessageBox.information(self,"Login Output","Invalid User.. Register for new user ")
         
@@ -101,10 +121,7 @@ class RegAPP(QDialog):
                     cursor.execute("insert into users values ('"+ un +"','"+ pw +"','"+ em +"','"+ pnum +"')")
                     db.commit()
                     QMessageBox.information(self,"Login form","The user registered successfully ")
-                    p1 = LoginApp()
-                    p1.show()
-                    
-                    
+            
                    else:
                         QMessageBox.information(self,"invalid","Please enter valid mobile number ")
                        
@@ -146,9 +163,9 @@ app.exec_()
 
 engine = pyttsx3.init('sapi5')
 voices = engine.getProperty('voices')
-print(voices[0].id)
-engine.setProperty('voice',voices[0].id)
-engine.setProperty('rate',180)
+print(voices[3].id)
+engine.setProperty('voice',voices[3].id)
+engine.setProperty('rate',155)
 
 
 def speak(audio):
@@ -183,7 +200,7 @@ def takeCommand():
     except:
         print("Say that again please....")
         return "None"
-    return query
+    return query.lower()
 
 
 def Temp ():
@@ -231,77 +248,136 @@ def My_loca():
     geo_d = geo_q.json()
     state = geo_d['city']
     country = geo_d['country']
-    speak(f"sir, Your are now in {state, country}")
+    speak(f"sir, You are now in {state, country}")
 
+def SpeedTest():
+    
+    speak ("checking speed....")
+    speed = speedtest.Speedtest()
+    downloading = speed.download()
+    correctDown = int(downloading/800000)
+    uploading = speed.upload()
+    correctUpload = int(uploading/80000)
 
+    if 'uploading' in QueryValue:
+        speak(f"The Uploading speed is {correctUpload} mbp s")
+        print(f"The Uploading speed is {correctUpload} mbp s")
 
+    elif 'downloading' in QueryParams:
+        speak(f"The downloading speed is{correctDown} mbp s")
+        print(f"The downloading speed is{correctDown} mbp s")
 
+    else:
+        speak(f"The downloading is {correctDown} and The Uploading speed is {correctUpload}")  
+        print(f"The downloading is {correctDown} and The Uploading speed is {correctUpload}")
 
-if __name__== "__main__":
-    wishMe()
-    while True:
-            query = takeCommand().lower()
+class MainThread(QThread):
+    def __init__(self):
+        super(MainThread,self).__init__()
+    
+    def run(self):
+        while True:
+            permission = takeCommand()
+            if "wake up" in permission:
+                 self.TaskExecution()
+            elif "goodbye" in permission:
+                sys.exit()
 
-            if "hello" in query:
+ 
+    def takeCommand(self):
+        r = sr.Recognizer()
+        with sr.Microphone() as source:
+            print("Listening...")
+            r.pause_threshold = 1
+            audio = r.listen(source)
+            
+        try:
+            print("Recognizing...")
+            self.query = r.recognize_google(audio, language='en-in')
+            print(f"User said: {self.query}\n")
+
+        except:
+            print("Say that again please....")
+            return "None"
+        return self.query
+
+    def TaskExecution(self):
+        wishMe()
+        while True:
+            self.query = takeCommand().lower()
+
+            if "hello" in self.query:
                 speak('Hello sir')
             
-            elif "how are you" in query:
+            elif "how are you" in self.query:
                 speak('I am fine sir, what about you')
 
-            elif "fine" in query:
+            elif "fine" in self.query:
                 speak("That's great sir")
 
-            elif "open notepad" in query:
+            elif "open notepad" in self.query:
                 path = "C:\\windows\\system32\\notepad.exe"
                 os.startfile(path)
             
-            elif "open command prompt" in query:
+            elif "open command prompt" in self.query:
                 os.system("start cmd")
 
-            elif "ip address" in query:
+            elif "ip address" in self.query:
                 ip = get("https://api.ipify.org").text
                 print("Your IP address is ",ip)
                 speak(f"yout IP address is {ip}")
             
 
-            elif 'wikipedia' in query:
+            elif 'wikipedia' in self.query:
                 speak("sir, what should I search on wikipedia")
-                query = takeCommand().lower()
-                results = wikipedia.summary(f"{query}", sentences=2)
+                self.query = takeCommand().lower()
+                results = wikipedia.summary(f"{self.query}", sentences=2)
                 speak("According to wikipedia")
                 print(results)
                 speak(results)
 
-            elif 'open youtube' in query:
+            elif 'open youtube' in self.query:
                 speak("sir, what should I search on youtube")
                 yt =takeCommand().lower() 
                 webbrowser.open(f"https://www.youtube.com/results?search_query={yt}")
 
-            elif 'open google' in query:
+            elif 'open google' in self.query:
                 speak("sir, what should I search on google")
                 cm = takeCommand().lower()
                 webbrowser.open(f"https://www.google.com/search?q={cm}")
               
-            elif "close notepad" in query:
+            elif "close notepad" in self.query:
                 speak('okay sir, closing notepad')
                 os.system("taskkill /f /im notepad.exe")
             
-            elif "close youtube" in query:
+            elif "close youtube" in self.query:
                 speak("okay sir, closeing youtube")
                 os.system("TASKKILL /F /im msedge.exe")
 
-            elif "close map" in query:
+            elif "close map" in self.query:
                 speak("Okay sir, closing googlemap")
                 os.system("TASKKILL /F /im msedge.exe")
+            
+            elif "close google" in self.query:
+                speak("Okay sir, closing google")
+                os.system("TASKKILL /F /im msedge.exe")
 
-            elif "set alarm" in query:
+            elif "close camera" in self.query:
+                speak("Okay sir closing camera")
+                os.system("end cmd")
+            
+            elif "sleep" in self.query:
+                speak("Okay sir, I am going to sleep, you can call me any time")
+                break
+
+            elif "set alarm" in self.query:
                 a = int(datetime.datetime.now().hour)
                 if a ==22:
                     music_dir = 'C:\\Users\\harsh\\Desktop\\Virtual Assistant'
                     songs =os.listdir(music_dir)
                     os.startfile(os.path.join(music_dir,songs[0]))
 
-            elif "where I am" in query or "where we are" in query:
+            elif "where I am" in self.query or "where we are" in self.query:
                 speak("wait sir, let me check")
                 try:
                     ipAdd = requests.get('https://api.ipify.org').text
@@ -318,10 +394,10 @@ if __name__== "__main__":
                     speak("sorry sir, Due to network issue i am not able to find where we are.")
                     pass
                 
-            elif  "location" in query:
+            elif  "location" in self.query:
                 My_loca()
         
-            elif 'alarm' in query:
+            elif "abc" in self.query:
                 speak("Enter the Time!") 
                 time = input(": Please, Enter the Time :")
 
@@ -337,57 +413,132 @@ if __name__== "__main__":
                     elif now>time:
                         break
 
-            elif 'remember that' in query:
-                        rememberMsg = query.replace("remember that","")
+            elif 'remember that' in self.query:
+                        rememberMsg = self.query.replace("remember that","")
                         rememberMsg = rememberMsg.replace("jarvis","")
                         speak("You Tell Me To Remind You That: "+rememberMsg)
                         remember = open('data.txt','w')
                         remember.write(rememberMsg)
                         remember.close()
 
-            elif 'what do you remember' in query:
+            elif 'what do you remember' in self.query:
                         remember = open('data.txt','r') 
                         speak("You Tell Me That" +remember.read()) 
 
-            elif 'temperature' in query: 
+            elif 'temperature' in self.query: 
                         Temp() 
 
-            elif 'google search' in query:
+            elif 'google search' in self.query:
                         import wikipedia as googlescrap
-                        query = query.replace("jarvis","")
-                        query = query.replace("google search","")  
-                        query = query.replace("google","")
+                        self.query = self.query.replace("jarvis","")
+                        self.query = self.query.replace("google search","")  
+                        self.query = self.query.replace("google","")
                         speak("This is what I found on the web!")
-                        pywhatkit.search(query)
+                        pywhatkit.search(self.query)
 
                         try:
-                            result = googlescrap.summary(query,3)
+                            result = googlescrap.summary(self.query,3)
                             speak(result)                                            
                         except:
                             speak("No Speakable Data Available!")    
                     
-            elif 'youtube search' in query:
-                        Query = query.replace("jarvis","")
-                        query = Query.replace("youtube search","")
+            elif 'youtube search' in self.query:
+                        Query = self.query.replace("jarvis","")
+                        self.query = Query.replace("youtube search","")
                         from features import YoutubeSearch
-                        YoutubeSearch(query)
+                        YoutubeSearch(self.query)
         
-            elif 'how to' in query:
+            elif 'how to' in self.query:
                 speak("Getting Data From The Internet!")
-                op = query.replace("jarvis","")
+                op = self.query.replace("jarvis","")
                 max_result = 1
                 how_to_func = search_wikihow(op,max_result)
                 assert len(how_to_func) == 1
                 how_to_func[0].print()
                 speak(how_to_func[0].summary)
+            
+            elif "how much power left" in self.query or "how much power we have" in self.query or "battery" in self.query:
+                import psutil          
+                battery = psutil.sensors_battery()
+                percentage = battery.percent
+                speak(f"sir our system have {percentage} percent battery")
+                print(f"sir our system have {percentage} percent battery")
 
-        
+            elif "open camera" in self.query:
+                cap = cv2.VideoCapture(0)
+                while True:
+                    ret, img = cap.read()
+                    cv2.imshow('webcam', img)
+                    k = cv2.waitKey(50)
+                    if k == 27:
+                        break
+                cap.release()
+                cv2.destroyAllWindows()           
 
+            elif 'downloading speed' in self.query:
+                SpeedTest()
+
+            elif 'uploading speed' in self.query:
+                SpeedTest()
+
+            elif 'internet speed' in self.query:
+                SpeedTest()
+
+            elif 'volume up' in self.query:
+                pyautogui.press("Volumeup")
+
+            elif 'volume down' in self.query:
+                pyautogui.press("Volumedown")
+
+            elif 'mute volume' in self.query:
+                pyautogui.press("Volumemute")
+            
+            elif 'alarm' in self.query:
+                speak("sir please tell me the time to set alarm. for example, set alarm to 5:30 am")
+                tt = takeCommand()
+                tt = tt.replace("set alarm to","")
+                tt = tt.replace(".","")
+                tt = tt.upper()
+                import MyAlarm 
+                MyAlarm.alarm(tt)
+
+startExecution = MainThread()
+
+class Main(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.ui = Ui_Form()
+        self.ui.setupUi(self)
+        self.ui.pushButton.clicked.connect(self.startTask)
+        self.ui.pushButton_2.clicked.connect(self.close)
+
+    def startTask(self):
+        # self.ui.movie = QMovie("C:\\Users\harsh\Downloads\proxy.webp")
+        # self.ui.label.setMovie(self.movie)
+        # self.ui.movie.start() 
+        # self.ui.movie = QMovie("C:\\Users\harsh\Downloads\FavorablePerfectGermanspitz-size_restricted.gif")
+        # self.ui.label_3.setMovie(self.movie)
+        # self.ui.movie.start()
+        # self.ui.movie = QMovie("C:\\Users\harsh\Downloads\ee0139273e55e274bb86498b7836a350.gif")
+        # self.ui.label_5.setMovie(self.movie)
+        # self.ui.movie.start()
+        timer = QTimer(self)
+        timer.timeout.connect(self.showtime)
+        timer.start(1000)
+        startExecution.start()
+
+    def showtime(self):
+        current_time = QTime.currentTime()
+        current_date = QDate.currentDate()
+        label_time = current_time.toString('hh:mm:ss')
+        label_date = current_date.toString(Qt.ISODate)
+        self.ui.date.setText(label_date)
+        self.ui.time.setText(label_time)
      
 
-           
 
 
+M1_Assistance = Main()
+M1_Assistance.show()
+exit(app.exec_())
 
-     
-    

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1134</width>
-    <height>733</height>
+    <height>729</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -21,6 +21,9 @@
      <width>1141</width>
      <height>756</height>
     </rect>
+   </property>
+   <property name="autoFillBackground">
+    <bool>false</bool>
    </property>
    <property name="styleSheet">
     <string notr="true">QWidget#widget{
@@ -293,6 +296,9 @@ padding-top:5px;
     </property>
     <property name="text">
      <string>L O G I N   </string>
+    </property>
+    <property name="checkable">
+     <bool>false</bool>
     </property>
    </widget>
   </widget>
